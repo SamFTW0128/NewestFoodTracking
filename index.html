@@ -269,25 +269,35 @@
   }
   
   try {
-    const res = await fetch(`${API_BASE}/api/register`, {
+    const res = await fetch(`${API_BASE}/api/register`, {  // ✅ Removed "1"
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        userId: id,                    // ✅ Fixed
+        userId: id,                    // ✅ Changed from "id" to "userId: id"
         name, 
         password, 
         role, 
         location, 
-        vehicleType: deliveryMethod    // ✅ Fixed
+        vehicleType: deliveryMethod    // ✅ Changed from "deliveryMethod" to "vehicleType"
       })
     });
     
     const data = await res.json();
-    if (!res.ok) return toast(data.error || 'Registration failed');
+    if (!res.ok) {
+      return toast(data.error || 'Registration failed');
+    }
     
     localStorage.setItem('authToken', data.token);
+    setCurrentUser({ 
+      id: data.user.user_id, 
+      name: data.user.name, 
+      role: data.user.role 
+    });
+    
     toast('Registration successful!');
-    setTimeout(() => window.location.href = `${role}-refined.html`, 800);
+    setTimeout(() => {
+      window.location.href = `${role}-refined.html`;
+    }, 800);
   } catch (err) {
     console.error(err);
     toast('Network error');
@@ -297,47 +307,50 @@
 
         // ---- Backend login ----
         async function loginWithBackend(event) {
-            event.preventDefault();
+  event.preventDefault();
+  const id = document.getElementById('loginId').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+  const role = currentRole;
+  
+  if (!id || !password) {
+    return toast('Please enter ID and password');
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/login`, {  // ✅ Removed "1"
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        userId: id,    // ✅ Changed from "id" to "userId: id"
+        password, 
+        role 
+      })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      return toast(data.error || 'Login failed');
+    }
+    
+    localStorage.setItem('authToken', data.token);
+    setCurrentUser({ 
+      id: data.user.user_id, 
+      name: data.user.name, 
+      role: data.user.role 
+    });
+    
+    toast('Login successful!');
+    setTimeout(() => {
+      window.location.href = `${data.user.role}-refined.html`;
+    }, 500);
+  } catch (err) {
+    console.error(err);
+    toast('Network error');
+  }
+}
 
-            const id = document.getElementById("loginId").value.trim();
-            const password = document.getElementById("loginPassword").value.trim();
-            const role = currentRole;
-
-            if (!id || !password) {
-                return toast("⚠️ Please enter ID and password");
-            }
-
-            try {
-                const res = await fetch(`${API_BASE}/api/login`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id, password, role })
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    return toast("❌ " + (data.error || "Login failed"));
-                }
-
-                localStorage.setItem("authToken", data.token);
-                setCurrentUser({
-                    id: data.user.user_id,
-                    name: data.user.name,
-                    role: data.user.role
-                });
-
-                toast("✅ Login successful");
-
-                setTimeout(() => {
-                    window.location.href = `${data.user.role}-refined.html`;
-                }, 500);
-            } catch (err) {
-                console.error(err);
-                toast("❌ Network error");
-            }
-        }
     </script>
 </body>
 </html>
+
 
