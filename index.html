@@ -256,51 +256,44 @@
 
         // ---- Backend registration ----
         async function registerWithBackend(event) {
-            event.preventDefault();
+  event.preventDefault();
+  const id = document.getElementById('registerId').value.trim();
+  const name = document.getElementById('registerName').value.trim();
+  const password = document.getElementById('registerPassword').value.trim();
+  const role = currentRole;
+  const location = document.getElementById('registerLocation')?.value.trim() || null;
+  const deliveryMethod = document.getElementById('registerDeliveryMethod')?.value || null;
+  
+  if (!id || !name || !password || !role) {
+    return toast('Please fill all required fields');
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        userId: id,                    // ✅ Fixed
+        name, 
+        password, 
+        role, 
+        location, 
+        vehicleType: deliveryMethod    // ✅ Fixed
+      })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) return toast(data.error || 'Registration failed');
+    
+    localStorage.setItem('authToken', data.token);
+    toast('Registration successful!');
+    setTimeout(() => window.location.href = `${role}-refined.html`, 800);
+  } catch (err) {
+    console.error(err);
+    toast('Network error');
+  }
+}
 
-            const id = document.getElementById("registerId").value.trim();
-            const name = document.getElementById("registerName").value.trim();
-            const password = document.getElementById("registerPassword").value.trim();
-            const role = currentRole;
-
-            const location = document.getElementById("registerLocation")?.value.trim() || null;
-            const deliveryMethod = document.getElementById("registerDeliveryMethod")?.value || null;
-
-            if (!id || !name || !password || !role) {
-                return toast("⚠️ Please fill all required fields");
-            }
-
-            try {
-                const res = await fetch(`${API_BASE}/api/register`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ id, name, password, role, location, deliveryMethod })
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    return toast("❌ " + (data.error || "Registration failed"));
-                }
-
-                // Save login session in a way compatible with storage.js + other pages
-                localStorage.setItem("authToken", data.token);
-                setCurrentUser({
-                    id: data.user.user_id,
-                    name: data.user.name,
-                    role: data.user.role
-                });
-
-                toast("🎉 Registration successful!");
-
-                setTimeout(() => {
-                    window.location.href = `${role}-refined.html`;
-                }, 800);
-            } catch (err) {
-                console.error(err);
-                toast("❌ Network error");
-            }
-        }
 
         // ---- Backend login ----
         async function loginWithBackend(event) {
@@ -347,3 +340,4 @@
     </script>
 </body>
 </html>
+
